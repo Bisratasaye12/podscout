@@ -3,6 +3,7 @@ import cors from "cors"; //enable cross origin request
 
 import userRoutes from "./routes/users.js";
 import subscriptionsRoutes from "./routes/subscriptions.js";
+import podcastRoutes from "./routes/podcasts.js";
 
 const app = express(); //do this w every express app
 const corsOptions = {
@@ -17,6 +18,7 @@ app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
 
 app.use("/user", userRoutes);
 app.use("/subscriptions", subscriptionsRoutes);
+app.use("/podcasts", podcastRoutes);
 
 app.use((req, res) => res.status(404).json({ message: "Not found" }));
 
