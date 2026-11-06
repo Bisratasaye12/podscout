@@ -1,39 +1,40 @@
-import express from "express";
-import mongoose from "mongoose";
-
 import Subscriptions from "../models/subscriptions.js";
 
-const router = express.Router();
+// The email always comes from the verified token, so a user can only
+// read and change their own subscriptions.
+const updateSubs = async (req, res, next) => {
+  const { subscriptions } = req.body;
 
-const updateSubs = async (req, res) => {
-  const { email, subscriptions } = req.body;
+  if (!Array.isArray(subscriptions))
+    return res.status(400).json({ message: "subscriptions must be an array" });
 
-  const existingRecord = await Subscriptions.findOne({ email });
-  if (!existingRecord)
-    return res
-      .status(400)
-      .json({ message: "No user with that email in the database" });
+  try {
+    const updatedRecord = await Subscriptions.findOneAndUpdate(
+      { email: req.userEmail },
+      { subscriptions },
+      {
+        new: true, //set the new option to true to return the document after update was applied
+      }
+    );
+    if (!updatedRecord)
+      return res.status(404).json({ message: "No subscriptions for this user" });
 
-  const updatedRecord = await Subscriptions.findOneAndUpdate(
-    { email },
-    { subscriptions },
-    {
-      new: true, //set the new option to true to return the document after update was applied
-    }
-  );
-
-  res.status(200).json(updatedRecord);
+    res.status(200).json(updatedRecord);
+  } catch (error) {
+    next(error);
+  }
 };
 
-const getSubs = async (req, res) => {
-  const { email } = req.query;
-  const existingRecord = await Subscriptions.findOne({ email });
-  if (!existingRecord)
-    return res
-      .status(400)
-      .json({ message: "No user with that email in the database" });
+const getSubs = async (req, res, next) => {
+  try {
+    const existingRecord = await Subscriptions.findOne({ email: req.userEmail });
+    if (!existingRecord)
+      return res.status(404).json({ message: "No subscriptions for this user" });
 
-  res.status(200).json(existingRecord.subscriptions);
+    res.status(200).json(existingRecord.subscriptions);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export { getSubs, updateSubs };
