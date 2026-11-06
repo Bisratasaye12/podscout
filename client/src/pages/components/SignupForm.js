@@ -35,16 +35,21 @@ const SignupForm = ({ handleClose, setUser}) => {
   const [userData, setUserData] = useState(initialState);
 
   const [isSignup, setIsSignup] = useState(true);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isSignup) {
-      const { data } = await api.signUp(userData);
+    setError("");
+
+    try {
+      const { data } = isSignup
+        ? await api.signUp(userData)
+        : await api.signIn(userData);
       localStorage.setItem("profile", JSON.stringify({ ...data }));
-    } else {
-      const { data } = await api.signIn(userData);
-      localStorage.setItem("profile", JSON.stringify({ ...data }));
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not reach the server");
+      return;
     }
     setUser(JSON.parse(localStorage.getItem("profile"))?.userData)
     handleClose();
@@ -52,6 +57,7 @@ const SignupForm = ({ handleClose, setUser}) => {
 
   const switchMode = () => {
     setUserData(initialState);
+    setError("");
     setIsSignup((prevIsSignup) => !prevIsSignup);
   };
 
@@ -60,6 +66,11 @@ const SignupForm = ({ handleClose, setUser}) => {
       <Typography component="h1" variant="h5">
         {isSignup ? "Sign up" : "Sign in"}
       </Typography>
+      {error && (
+        <Typography color="error" role="alert">
+          {error}
+        </Typography>
+      )}
       {isSignup && (
         <>
           <TextField
