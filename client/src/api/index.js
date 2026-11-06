@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API = axios.create({ baseURL: "http://localhost:5000" });
+const API = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000",
+});
 
 //the function we pass into API.interceptors.request.use() is run before any axios request
 //add token to req.headers
@@ -29,4 +31,9 @@ const updateSubs = (email, subscriptions) => {
   return API.patch("/subscriptions", { email, subscriptions });
 };
 
-export { signIn, signUp, getSubs, updateSubs };
+const searchPodcasts = (term) => API.get("/podcasts/search", { params: { term } });
+
+const getPodcastFeed = (id) =>
+  API.get(`/podcasts/${id}/feed`, { responseType: "text" });
+
+export { signIn, signUp, getSubs, updateSubs, searchPodcasts, getPodcastFeed };

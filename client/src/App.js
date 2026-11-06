@@ -66,22 +66,8 @@ const App = () => {
 
   const getPodcasts = async (term) => {
     try {
-      term = term.toString().replace(/[^a-zA-Z0-9]/g, " ");
-      const url = `https://cors.bridged.cc/https://itunes.apple.com/search?term=${term}&entity=podcast`;
-      const cors = "https://cors-anywhere.herokuapp.com/";
-      const result = await fetch(url, {
-        mode: "cors",
-        headers: {
-          "x-cors-grida-api-key": "32832479-b3b1-4f24-aa44-4ab02ccb1eb7",
-        },
-      });
-      const items = await result.json();
-
-      // this.setState({
-      //   podcasts: items.results,
-      //   tracks: undefined,
-      // });
-      setPodcasts(items.results);
+      const { data } = await api.searchPodcasts(term.toString());
+      setPodcasts(data);
     } catch (err) {
       console.log(err);
     }
@@ -89,20 +75,8 @@ const App = () => {
 
   const handleOnSelectPodcast = async (podcast) => {
     const id = podcast.trackId;
-    const cors = "https://cors-anywhere.herokuapp.com/";
     try {
-      const result1 = await fetch(
-        `https://cors.bridged.cc/https://itunes.apple.com/lookup?id=${id}&entity=podcast`,
-        {
-          mode: "cors",
-          headers: {
-            "x-cors-grida-api-key": "32832479-b3b1-4f24-aa44-4ab02ccb1eb7",
-          },
-        }
-      );
-      const items1 = await result1.json();
-      const result2 = await fetch(items1.results[0].feedUrl);
-      const text = await result2.text();
+      const { data: text } = await api.getPodcastFeed(id);
 
       const podcastDocument = new DOMParser().parseFromString(text, "text/xml");
 
