@@ -1,19 +1,19 @@
 import jwt from "jsonwebtoken";
 
-const secret = process.env.JWT_SECRET;
+const auth = (req, res, next) => {
+  const [scheme, token] = (req.headers.authorization || "").split(" ");
 
-const auth = async (req, res, next) => {
+  if (scheme !== "Bearer" || !token)
+    return res.status(401).json({ message: "Missing auth token" });
+
   try {
-    const token = req.headers.authorization.split(" ")[1];
+    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (token) {
-      let decodedData = jwt.verify(token, secret);
-
-      req.userId = decodedData?.id;
-    }
+    req.userId = decodedData.id;
+    req.userEmail = decodedData.email;
     next();
   } catch (error) {
-    console.log(error);
+    res.status(401).json({ message: "Invalid or expired token" });
   }
 };
 
